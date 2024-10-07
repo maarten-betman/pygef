@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any, List
 
 import polars as pl
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, ConfigDict
 
 from pygef.common import Location, VerticalDatumClass, depth_to_offset
 
@@ -104,31 +104,38 @@ class CPTData(BaseModel):
                 - magneticInclination [degrees]
                 - magneticDeclination [degrees]
     """
+    # model config
+    model_config = ConfigDict(
+        title="CPT",
+        arbitrary_types_allowed=True,
+        strict=False,
+        frozen=True
+    )
 
     # dispatch_document cpt
     bro_id: str | None
-    research_report_date: date
+    research_report_date: date | None
     cpt_standard: str | None
     delivered_location: Location
     standardized_location: Location | None
     # conepenetrometersurvey
     dissipationtest_performed: bool | None
     quality_class: QualityClass
-    predrilled_depth: float
-    final_depth: float
+    predrilled_depth: float | None
+    final_depth: float | None
     groundwater_level: float | None
     # conepenetrometer
     cpt_description: str
-    cpt_type: str
-    cone_surface_area: int
+    cpt_type: str | None
+    cone_surface_area: int | None
     cone_diameter: int | None
     cone_surface_quotient: float | None
     cone_to_friction_sleeve_distance: int | None
     cone_to_friction_sleeve_surface_area: int | None
     cone_to_friction_sleeve_surface_quotient: float | None
     # zero-load-measurement
-    zlm_cone_resistance_before: float
-    zlm_cone_resistance_after: float
+    zlm_cone_resistance_before: float | None
+    zlm_cone_resistance_after: float | None
     zlm_inclination_ew_before: int | None
     zlm_inclination_ew_after: int | None
     zlm_inclination_ns_before: int | None
@@ -165,12 +172,6 @@ class CPTData(BaseModel):
         )
         # bypass FrozenInstanceError
         object.__setattr__(self, "data", df)
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {
-            pl.DataFrame: lambda df: df.to_dict(orient="records"),
-        }
 
     @computed_field
     @property

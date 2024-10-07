@@ -6,7 +6,7 @@ from datetime import date
 from typing import Any
 
 import polars as pl
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, ConfigDict
 
 from pygef.broxml.mapping import MAPPING_PARAMETERS
 from pygef.common import Location, depth_to_offset
@@ -55,10 +55,17 @@ class BoreData(BaseModel):
                 - dispersedInhomogeneity
                 - organicMatterContentClass
     """
+    # model config
+    model_config = ConfigDict(
+        title="BH",
+        arbitrary_types_allowed=True,
+        strict=False,
+        frozen=True
+    )
 
     # dispatch_document bhrgt
     bro_id: str | None
-    research_report_date: date
+    research_report_date: date | None
     description_procedure: str
     delivered_location: Location
     groundwater_level: float | None
@@ -89,12 +96,6 @@ class BoreData(BaseModel):
         )
         # bypass FrozenInstanceError
         object.__setattr__(self, "data", df)
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {
-            pl.DataFrame: lambda df: df.to_dict(orient="records"),
-        }
 
     @computed_field
     @property
